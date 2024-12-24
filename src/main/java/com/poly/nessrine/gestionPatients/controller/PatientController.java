@@ -39,7 +39,7 @@ public class PatientController {
             model.addAttribute("patients", listePage.getContent()); // n7ot e liste fil modèle
             model.addAttribute("search", search);
 
-            return "/liste";
+            return "liste";
         }
 
 

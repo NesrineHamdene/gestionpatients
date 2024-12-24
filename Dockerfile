@@ -1,35 +1,26 @@
-# Étape de build: Utilisation de l'image Maven pour compiler l'application
-FROM maven:3.8.5-openjdk-17 AS build-stage
+# Use an official Maven image to build the application
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Définir le répertoire de travail
+# Set the working directory
 WORKDIR /app
 
-# Copier le fichier pom.xml pour télécharger les dépendances Maven
-COPY pom.xml ./
+# Copy the Maven project files
+COPY pom.xml .
+COPY src ./src
 
-# Télécharger les dépendances Maven
-RUN mvn dependency:go-offline
+# Build the application
+RUN mvn package -DskipTests
 
-# Copier tout le code source
-COPY src /app/src
+# Use a smaller image to run the application
+FROM openjdk:17-jdk-slim
 
-# Compiler le projet et créer le fichier .jar
-RUN mvn clean package -DskipTests
-
-# Vérifier la présence du fichier .jar généré
-RUN ls /app/target
-
-# Étape finale: Utilisation d'une image Java plus légère
-FROM openjdk:17-jdk-slim AS final-stage
-
-# Définir le répertoire de travail dans l'image finale
 WORKDIR /app
 
-# Copier le fichier .jar depuis l'étape précédente
-COPY --from=build-stage /app/target/gestionPatients-0.0.1-SNAPSHOT.jar /app/gestionPatients.jar
+# Copy the built JAR from the previous stage
+COPY --from=build /app/target/gestionPatients-0.0.1-SNAPSHOT.jar app.jar
 
-# Exposer le port de l'application
+# Expose the application port
 EXPOSE 8080
 
-# Commande pour exécuter l'application
-ENTRYPOINT ["java", "-jar", "/app/gestionPatients.jar"]
+# Run the Spring Boot application
+ENTRYPOINT ["java", "-jar", "app.jar"]
