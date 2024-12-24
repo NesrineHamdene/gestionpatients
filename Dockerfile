@@ -1,36 +1,35 @@
-# Utiliser l'image officielle de Java 17
-FROM openjdk:17-jdk-slim AS build-stage
+# Étape de build: Utilisation de l'image Maven pour compiler l'application
+FROM maven:3.8.5-openjdk-17 AS build-stage
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Installer Maven
-FROM maven:3.8.5-openjdk-17 AS final-stage
+# Copier le fichier pom.xml pour télécharger les dépendances Maven
+COPY pom.xml ./
 
-
-# Copier le fichier pom.xml dans l'image Docker
-COPY pom.xml .
-
-# Télécharger les dépendances Maven (cela crée le répertoire .m2)
+# Télécharger les dépendances Maven
 RUN mvn dependency:go-offline
 
-# Copier tout le code source dans le répertoire de travail
+# Copier tout le code source
 COPY src /app/src
 
-# Compiler le projet avec Maven
+# Compiler le projet et créer le fichier .jar
 RUN mvn clean package -DskipTests
 
-# Étape finale: Utilisation d'une image de base plus légère
-FROM openjdk:17-jdk-slim
+# Vérifier la présence du fichier .jar généré
+RUN ls /app/target
 
-# Définir le répertoire de travail dans l'image Docker
+# Étape finale: Utilisation d'une image Java plus légère
+FROM openjdk:17-jdk-slim AS final-stage
+
+# Définir le répertoire de travail dans l'image finale
 WORKDIR /app
 
-# Copier le jar compilé de l'étape de build
-COPY --from=build /app/target/gestionPatients-0.0.1-SNAPSHOT.jar /app/gestionPatients.jar
+# Copier le fichier .jar depuis l'étape précédente
+COPY --from=build-stage /app/target/gestionPatients-0.0.1-SNAPSHOT.jar /app/gestionPatients.jar
 
-# Exposer le port sur lequel l'application Spring Boot sera exécutée
+# Exposer le port de l'application
 EXPOSE 8080
 
-# Commande pour démarrer l'application
+# Commande pour exécuter l'application
 ENTRYPOINT ["java", "-jar", "/app/gestionPatients.jar"]
