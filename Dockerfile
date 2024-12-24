@@ -1,11 +1,11 @@
 # Utiliser l'image officielle de Java 17
-FROM openjdk:17-jdk-slim AS build
+FROM openjdk:17-jdk-slim AS build-stage
 
 # Définir le répertoire de travail
 WORKDIR /app
 
 # Installer Maven
-FROM maven:3.9.5-openjdk-17 AS build
+FROM maven:3.8.5-openjdk-17 AS final-stage
 
 
 # Copier le fichier pom.xml dans l'image Docker
@@ -33,4 +33,4 @@ COPY --from=build /app/target/gestionPatients-0.0.1-SNAPSHOT.jar /app/gestionPat
 EXPOSE 8080
 
 # Commande pour démarrer l'application
-ENTRYPOINT ["java", "-jar", "/app/gestionpatients.jar"]
+ENTRYPOINT ["java", "-jar", "/app/gestionPatients.jar"]
