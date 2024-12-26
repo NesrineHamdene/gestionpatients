@@ -25,6 +25,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
     depends_on:
       - mysql
+    command: ["sh", "-c", "/usr/local/bin/wait-for-it.sh mysql:3306 -- java -jar app.jar"]
 
 volumes:
   mysql-data:

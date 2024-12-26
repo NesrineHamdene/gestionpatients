@@ -1,26 +1,27 @@
-# Use an official Maven image to build the application
+# Étape 1 : Utiliser une image Maven pour construire l'application
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Set the working directory
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copy the Maven project files
+# Copier les fichiers du projet Maven
 COPY pom.xml .
 COPY src ./src
 
-# Build the application
+# Construire l'application en ignorant les tests
 RUN mvn package -DskipTests
 
-# Use a smaller image to run the application
+# Étape 2 : Utiliser une image OpenJDK plus légère pour exécuter l'application
 FROM openjdk:17-jdk-slim
 
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copy the built JAR from the previous stage
+# Copier le fichier JAR généré
 COPY --from=build /app/target/gestionPatients-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the application port
+# Exposer le port de l'application
 EXPOSE 8080
 
-# Run the Spring Boot application
+# Lancer l'application Spring Boot
 ENTRYPOINT ["java", "-jar", "app.jar"]
